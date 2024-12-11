@@ -36,6 +36,7 @@ app.use(cors(corsOptions));
 app.use("/api/certificate", router);
 
 app.get("/", (req, res) => res.send("Server is up and running!!!"));
+console.log(process.env.EMAIL_USER, process.env.EMAIL_PASS);
 
 const startApp = async () => {
   await connectToDB();

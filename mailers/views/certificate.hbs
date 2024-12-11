@@ -1,29 +1,70 @@
 <html>
   <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Thank You for Your Contribution to MIRG-ICAIR 2024</title>
     <style>
-      body { font-family: Arial, sans-serif; line-height: 1.6; }
-      .certificate-link { display: inline-block; margin-top: 20px; padding: 10px
-      20px; color: white; background-color: #28a745; text-decoration: none;
-      border-radius: 5px; font-size: 16px; cursor: pointer; }
-      .certificate-link:hover { background-color: #218838; }
+      body { font-family: Arial, sans-serif; line-height: 1.6; margin: 0;
+      padding: 20px; background-color: #f9f9f9; } .container { background:
+      white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,
+      0, 0, 0.1); max-width: 600px; margin: auto; } h1 { font-size: 20px; color:
+      #333; } p { font-size: 16px; color: #555; } .highlight { font-weight:
+      bold; color: #000; } .link { display: inline-block; margin-top: 20px;
+      padding: 10px 20px; color: white; background-color: #007bff;
+      text-decoration: none; border-radius: 5px; font-size: 16px; } .link:hover
+      { background-color: #0056b3; }
     </style>
   </head>
   <body>
-    <h1>Thank You for {{role}}, {{name}}!</h1>
-    <p>
-      We truly appreciate your participation in
-      <strong>{{event}}</strong>, themed -
-      <i>{{theme}}</i>. Your involvement was invaluable, and we are pleased to
-      provide you with a certificate recognizing your participation.
-    </p>
-    <p>
-      Click the button below to download your participation certificate:
-    </p>
-    <a
-      class="certificate-link"
-      href="{{certificateUrl}}"
-      download="{{name}}_certificate.png"
-    >View Certificate</a>
-    <p>Best regards,<br /> The Event Team</p>
+    <div class="container">
+
+      <p>Dear <span class="highlight">{{name}}</span>,</p>
+
+      <p>
+        Appreciation for Your Role at the 4th International Conference on
+        Artificial Intelligence and Robotics
+      </p>
+
+      <p>
+        On behalf of the organizing committee, thank you for your invaluable
+        contribution as a
+        <span class="highlight">{{role}}</span>
+        at MIRG-ICAIR 2024, held from 26th to 28th November 2024, at the Glass
+        House, Faculty of Education, University of Lagos.
+      </p>
+
+      <p>
+        Your role was pivotal to the event’s success, particularly in advancing
+        discussions around “Artificial Intelligence for Future Industrialisation
+        of Medicine in Sub-Saharan Africa.”
+      </p>
+
+      <p>
+        We’d appreciate your feedback to help us improve future events using the
+        link below.
+        <a href="https://forms.gle/zN3G6gAJzoEwvGTG8" class="link">Feedback Form</a>
+      </p>
+
+      <p>
+        Also, photos of the event’s moments are available here:
+        <a href="https://photos.app.goo.gl/aC2ALTn9LAH6ajX17" class="link">Event
+          Photos Day 1</a>,
+        <a href="https://photos.app.goo.gl/CWrQkHmA7pj7e62p6" class="link">Event
+          Photos Day 2</a>,
+        <a href="https://photos.app.goo.gl/aC2ALTn9LAH6ajX17" class="link">Event
+          Photos Day 3</a>.
+      </p>
+
+      <p>
+        Thank you once again for your involvement. We hope to work together with
+        you again in the future.
+      </p>
+
+      <p>Warm regards,</p>
+
+      <p>
+        <b>MIRG-ICAIR 2024 Organising Committee</b><br />
+      </p>
+    </div>
   </body>
 </html>
