@@ -7,6 +7,7 @@ const {
   generateSingleCertificate,
   uploadCertificateToCloudinary,
   generateCertificates,
+  generateCertificatesInBatches,
 } = require("./utils");
 const fs = require("fs");
 const { readFile } = require("fs/promises");
@@ -15,7 +16,7 @@ const Busboy = require("busboy");
 
 const uploadCertificate = async (req) => {
   const data = req.body;
-  const response = await generateCertificates(data);
+  const response = await generateCertificatesInBatches(data);
 
   return response;
 };

@@ -49,11 +49,11 @@ const convertExcelToBase64 = async () => {
   return base64String;
 };
 
-const generateCertificates = async (users) => {
+
+const generateCertificatesInBatches = async (users, batchSize = 10) => {
   registerFont(path.join(__dirname, "/AlexBrush-Regular.ttf"), {
     family: "Alex Brush",
   });
-
 
   registerFont("./static/Montserrat-VariableFont_wght.ttf", {
     family: "Montserrat",
@@ -63,7 +63,6 @@ const generateCertificates = async (users) => {
     family: "MontserratAlternatesRegular",
   });
 
-  // Register Roboto font files
   registerFont(path.join(__dirname, "/static/Roboto-Regular.ttf"), {
     family: "Roboto",
   });
@@ -76,10 +75,9 @@ const generateCertificates = async (users) => {
     style: "italic",
   });
 
-  const templatePath = path.join(__dirname, "certificate_template.png"); // Path to the certificate template
+  const templatePath = path.join(__dirname, "certificate_template.png");
   const outputDir = path.join(__dirname, "generated_certificates");
 
-  // Ensure the output directory exists
   if (!fs.existsSync(outputDir)) {
     fs.mkdirSync(outputDir);
   }
@@ -87,125 +85,94 @@ const generateCertificates = async (users) => {
   try {
     const templateImage = await loadImage(templatePath);
 
-    for (const user of users) {
-      const { name, role, email } = user;
+    const totalUsers = users.length;
+    let currentBatchStart = 0;
 
-      // Create a canvas with the same dimensions as the template
-      const canvas = createCanvas(templateImage.width, templateImage.height);
-      const context = canvas.getContext("2d");
-
-      // Draw the template onto the canvas
-      context.drawImage(templateImage, 0, 0);
-
-      // Customize text styles
-      context.font = 'bold 150px "Alex Brush"';
-      context.fillStyle = "#8646E5";
-      context.textAlign = "center";
-
-      // Add user details to the certificate
-      context.fillText(name, canvas.width / 2, 800); // Name (adjust Y position as needed)
-
-      if (role.toLowerCase() == "participant") {
-        const padding = 50; // Padding around text
-        const boxX = 1190;
-        const boxY = 415;
-        const boxWidth = context.measureText(role).width + padding * 2; // Include padding width
-        const boxHeight = 150 + padding * 2; // Height of the box including padding
-        context.font = 'bold 30px "Roboto"';
-        context.fillStyle = "#8646E5";
-        // context.textAlign = "";
-        // context.fillText(role.toUpperCase(), 1237, 538); // Role
-
-        context.fillText(
-          role.toUpperCase(),
-          boxX + padding,
-          boxY + boxHeight / 2
-        ); // Role
-      } else if (role.toLowerCase() == "volunteer") {
-        const padding = 50; // Padding around text
-        const boxX = 1175;
-        const boxY = 415;
-        const boxWidth = context.measureText(role).width + padding * 2; // Include padding width
-        const boxHeight = 150 + padding * 2; // Height of the box including padding
-        context.font = 'bold 30px "Roboto"';
-        context.fillStyle = "#8646E5";
-        // context.textAlign = "";
-        // context.fillText(role.toUpperCase(), 1237, 538); // Role
-
-        context.fillText(
-          role.toUpperCase(),
-          boxX + padding,
-          boxY + boxHeight / 2
-        ); // Role
-      } else if (role.toLowerCase() == "speaker") {
-        const padding = 50; // Padding around text
-        const boxX = 1160;
-        const boxY = 415;
-        const boxWidth = context.measureText(role).width + padding * 2; // Include padding width
-        const boxHeight = 150 + padding * 2; // Height of the box including padding
-        context.font = 'bold 30px "Roboto"';
-        context.fillStyle = "#8646E5";
-        // context.textAlign = "";
-        // context.fillText(role.toUpperCase(), 1237, 538); // Role
-
-        context.fillText(
-          role.toUpperCase(),
-          boxX + padding,
-          boxY + boxHeight / 2
-        ); // Role
-      }
-
-      // Save the generated certificate
-      const outputPath = path.join(
-        outputDir,
-        `${name.replace(/ /g, "_")}_certificate.png`
+    while (currentBatchStart < totalUsers) {
+      const batch = users.slice(
+        currentBatchStart,
+        currentBatchStart + batchSize
       );
-      const out = fs.createWriteStream(outputPath);
-      const stream = canvas.createPNGStream();
-      stream.pipe(out);
 
-      // Wait for the stream to finish
-      await new Promise((resolve, reject) => {
-        out.on("finish", resolve);
-        out.on("error", reject);
-      });
+      // Process the current batch
+      await Promise.all(
+        batch.map(async (user) => {
+          const { name, role, email } = user;
 
-      console.log(`Certificate generated for ${name}: ${outputPath}`);
-      const { url, public_id } = await uploadCertificateToCloudinary(
-        outputPath
+          // Create a canvas and context
+          const canvas = createCanvas(
+            templateImage.width,
+            templateImage.height
+          );
+          const context = canvas.getContext("2d");
+
+          // Draw the certificate template
+          context.drawImage(templateImage, 0, 0);
+          context.font = 'bold 150px "Alex Brush"';
+          context.fillStyle = "#8646E5";
+          context.textAlign = "center";
+          context.fillText(name, canvas.width / 2, 800);
+
+          // Customize role display
+          context.font = 'bold 30px "Roboto"';
+          const roleY = 415;
+          if (role.toLowerCase() === "participant") {
+            context.fillText(role.toUpperCase(), 1237, roleY);
+          } else if (role.toLowerCase() === "volunteer") {
+            context.fillText(role.toUpperCase(), 1215, roleY);
+          } else if (role.toLowerCase() === "speaker") {
+            context.fillText(role.toUpperCase(), 1200, roleY);
+          }
+
+          // Save the certificate
+          const outputPath = path.join(
+            outputDir,
+            `${name.replace(/ /g, "_")}_certificate.png`
+          );
+          const out = fs.createWriteStream(outputPath);
+          const stream = canvas.createPNGStream();
+          stream.pipe(out);
+
+          await new Promise((resolve, reject) => {
+            out.on("finish", resolve);
+            out.on("error", reject);
+          });
+
+          const { url } = await uploadCertificateToCloudinary(outputPath);
+
+          await insertUser({
+            name,
+            role: role.toLowerCase(),
+            email,
+            certificateUrl: url,
+          });
+
+          await sendCertificateEmail(user, outputPath, url);
+
+          fs.unlink(outputPath, (err) => {
+            if (err) console.error(`Failed to delete file: ${outputPath}`, err);
+          });
+        })
       );
-      const certificateUrl = url;
-      console.log(`Uploaded to Cloudinary: ${certificateUrl}`);
 
-      await insertUser({
-        name,
-        role: role.toLowerCase(),
-        email,
-        certificateUrl,
-      });
+      // Move to the next batch
+      currentBatchStart += batchSize;
 
-      await sendCertificateEmail(user, outputPath, certificateUrl);
-
-      // Remove the file from the file system
-
-      fs.unlink(outputPath, (err) => {
-        if (err) {
-          console.error(`Failed to delete file: ${outputPath}`, err);
-        } else {
-          console.log(`Deleted file: ${outputPath}`);
-        }
-      });
+      console.log(
+        `Processed batch: ${currentBatchStart} of ${totalUsers} users.`
+      );
     }
 
     return {
       status: "success",
-      message: "Certificates generated successfully.",
+      message: "All certificates processed in batches.",
     };
   } catch (error) {
-    console.error("Error generating certificates:", error);
-    throw new Error("Failed to generate certificates");
+    console.error("Error processing certificates in batches:", error);
+    throw new Error("Failed to process certificates in batches");
   }
 };
+
 
 // Function to upload the certificate file to Filestack
 const uploadCertificateToFilestack = (filePath) => {
@@ -266,7 +233,7 @@ const insertUser = async (user) => {
 module.exports = {
   generateAndUploadCertificate,
   convertExcelToBase64,
-  generateCertificates,
+  generateCertificatesInBatches,
   uploadCertificateToCloudinary,
   insertUser,
 };
