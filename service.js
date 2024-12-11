@@ -16,7 +16,7 @@ const Busboy = require("busboy");
 
 const uploadCertificate = async (req) => {
   const data = req.body;
-  const response = await generateCertificatesInBatches(data);
+  const response = await generateCertificates(data);
 
   return response;
 };
