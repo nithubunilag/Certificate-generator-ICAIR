@@ -15,9 +15,9 @@ const sendCertificateEmail = async (user, filePath, certificateUrl) => {
       role:
         role.toLowerCase() == "volunteer"
           ? "Volunteering"
-          : role == "participant"
-          ? "Participating"
-          : "Speaking",
+          : role.toLowerCase() == "speaker"
+          ? "Speaking"
+          : "Participating",
       event: "MIRG-ICAIR 2024",
       theme:
         "Artificial Intelligence For Future Industrialization of Medicine in Sub-Saharan Africa",
