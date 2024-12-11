@@ -232,17 +232,17 @@ const generateCertificates = async (users) => {
       context.drawImage(templateImage, 0, 0);
 
       // Customize text styles
-      context.font = 'bold 80px "Alex Brush"';
+      context.font = 'normal 70px "Roboto"';
       context.fillStyle = "#8646E5";
       context.textAlign = "center";
 
       // Add user details to the certificate
-      context.fillText(name, canvas.width / 2, 800); // Name (adjust Y position as needed)
+      context.fillText(name, canvas.width / 2, 670); // Name (adjust Y position as needed)
 
       if (role.toLowerCase() == "participant") {
         const padding = 50; // Padding around text
-        const boxX = 1190;
-        const boxY = 415;
+        const boxX = 949;
+        const boxY = 308;
         const boxWidth = context.measureText(role).width + padding * 2; // Include padding width
         const boxHeight = 150 + padding * 2; // Height of the box including padding
         context.font = 'bold 30px "Roboto"';
@@ -257,8 +257,8 @@ const generateCertificates = async (users) => {
         ); // Role
       } else if (role.toLowerCase() == "volunteer") {
         const padding = 50; // Padding around text
-        const boxX = 1175;
-        const boxY = 415;
+        const boxX = 937;
+        const boxY = 308;
         const boxWidth = context.measureText(role).width + padding * 2; // Include padding width
         const boxHeight = 150 + padding * 2; // Height of the box including padding
         context.font = 'bold 30px "Roboto"';
@@ -273,8 +273,8 @@ const generateCertificates = async (users) => {
         ); // Role
       } else if (role.toLowerCase() == "speaker") {
         const padding = 50; // Padding around text
-        const boxX = 1160;
-        const boxY = 415;
+        const boxX = 923.5;
+        const boxY = 308;
         const boxWidth = context.measureText(role).width + padding * 2; // Include padding width
         const boxHeight = 150 + padding * 2; // Height of the box including padding
         context.font = 'bold 30px "Roboto"';
