@@ -13,11 +13,7 @@ const sendCertificateEmail = async (user, filePath, certificateUrl) => {
     context: {
       name,
       role:
-        role.toLowerCase() == "volunteer"
-          ? "Volunteering"
-          : role.toLowerCase() == "speaker"
-          ? "Speaking"
-          : "Participating",
+        role,
       event: "MIRG-ICAIR 2024",
       theme:
         "Artificial Intelligence For Future Industrialization of Medicine in Sub-Saharan Africa",
