@@ -3,7 +3,7 @@ const transporter = require("../config/transporter");
 // sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 const sendCertificateEmail = async (user, filePath, certificateUrl) => {
-  const { name, email, role} = user;
+  const { name, email, role } = user;
 
   const mailOptions = {
     from: process.env.EMAIL_USER,
@@ -12,11 +12,16 @@ const sendCertificateEmail = async (user, filePath, certificateUrl) => {
     template: "certificate",
     context: {
       name,
-      role: role == 'volunteer' ? 'Volunteering' : role =='participant' ? 'Participating' : 'Speaking',
+      role:
+        role.toLowerCase() == "volunteer"
+          ? "Volunteering"
+          : role == "participant"
+          ? "Participating"
+          : "Speaking",
       event: "MIRG-ICAIR 2024",
       theme:
         "Artificial Intelligence For Future Industrialization of Medicine in Sub-Saharan Africa",
-      certificateUrl
+      certificateUrl,
     },
     attachments: [
       {
@@ -33,7 +38,6 @@ const sendCertificateEmail = async (user, filePath, certificateUrl) => {
     console.error("Error sending email:", error);
   }
 };
-
 
 const sendCertificateEmailBySendGrid = async (user, certificateUrl) => {
   const { name, email, role } = user;
@@ -64,6 +68,5 @@ const sendCertificateEmailBySendGrid = async (user, certificateUrl) => {
     console.error("Error sending email:", error.response?.body || error);
   }
 };
-
 
 module.exports = { sendCertificateEmail, sendCertificateEmailBySendGrid };
