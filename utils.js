@@ -232,7 +232,7 @@ const generateCertificates = async (users) => {
       context.drawImage(templateImage, 0, 0);
 
       // Customize text styles
-      context.font = 'bold 150px "Alex Brush"';
+      context.font = 'bold 80px "Alex Brush"';
       context.fillStyle = "#8646E5";
       context.textAlign = "center";
 
