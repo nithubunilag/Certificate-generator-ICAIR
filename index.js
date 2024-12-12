@@ -5,7 +5,8 @@ const bodyParser = require("body-parser");
 const { connectToDB } = require("./config/database/mongodb");
 const router = require("./route");
 const { convertExcelToBase64 } = require("./utils");
-const path =  require('path')
+const path = require("path");
+const User = require("./model");
 const PORT = process.env.PORT || 4000;
 const app = express();
 app.use((req, res, next) => {
@@ -36,7 +37,6 @@ app.use(cors(corsOptions));
 app.use("/api/certificate", router);
 
 app.get("/", (req, res) => res.send("Server is up and running!!!"));
-
 
 const startApp = async () => {
   await connectToDB();

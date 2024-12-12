@@ -5,6 +5,7 @@ const transporter = require("../config/transporter");
 const sendCertificateEmail = async (user, filePath, certificateUrl) => {
   const { name, email, role } = user;
 
+  
   const mailOptions = {
     from: process.env.EMAIL_USER,
     to: email,
