@@ -369,9 +369,9 @@ const generateCertificates = async (users, batchSize = 10, maxRetries = 3) => {
 
       const roleLowered = role.toLowerCase();
       const rolePositioning = {
-        participant: { x: 960, y: 383 },
-        volunteer: { x: 960, y: 383 },
-        speaker: { x: 960, y: 383 },
+        participant: { x: 967, y: 383 },
+        volunteer: { x: 963, y: 383 },
+        speaker: { x: 945, y: 383 },
       };
 
       if (rolePositioning[roleLowered]) {
