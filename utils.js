@@ -177,6 +177,9 @@ const convertExcelToBase64 = async () => {
 
 
 
+
+
+
 // Function to upload the certificate file to Filestack
 
 
@@ -184,6 +187,7 @@ const generateCertificates = async (users) => {
   registerFont(path.join(__dirname, "/AlexBrush-Regular.ttf"), {
     family: "Alex Brush",
   });
+
 
   registerFont(path.join(__dirname, "/static/PlaywriteGBSGuides-Italic.ttf"), {
     family: "Playwrite GB S Guides",
