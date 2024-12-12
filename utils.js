@@ -212,135 +212,255 @@ const convertExcelToBase64 = async () => {
 //   }
 // };
 
-const generateCertificates = async (users, batchSize = 10) => {
-  registerFont(path.join(__dirname, "/AlexBrush-Regular.ttf"), {
-    family: "Alex Brush",
-  });
+// const generateCertificates = async (users, batchSize = 10) => {
+//   registerFont(path.join(__dirname, "/AlexBrush-Regular.ttf"), {
+//     family: "Alex Brush",
+//   });
 
-  registerFont(path.join(__dirname, "/static/PlaywriteGBSGuides-Italic.ttf"), {
-    family: "Playwrite GB S Guides",
-  });
+//   registerFont(path.join(__dirname, "/static/PlaywriteGBSGuides-Italic.ttf"), {
+//     family: "Playwrite GB S Guides",
+//   });
 
-  registerFont("./static/Montserrat-VariableFont_wght.ttf", {
-    family: "Montserrat",
-  });
+//   registerFont("./static/Montserrat-VariableFont_wght.ttf", {
+//     family: "Montserrat",
+//   });
 
-  registerFont("./static/MontserratAlternates-Regular.otf", {
-    family: "MontserratAlternatesRegular",
-  });
+//   registerFont("./static/MontserratAlternates-Regular.otf", {
+//     family: "MontserratAlternatesRegular",
+//   });
 
-  // Register Roboto font files
-  registerFont(path.join(__dirname, "/static/Roboto-Regular.ttf"), {
-    family: "Roboto",
-  });
-  registerFont(path.join(__dirname, "/static/Roboto-Bold.ttf"), {
-    family: "Roboto",
-    weight: "bold",
-  });
-  registerFont(path.join(__dirname, "/static/Roboto-Italic.ttf"), {
-    family: "Roboto",
-    style: "italic",
-  });
+//   // Register Roboto font files
+//   registerFont(path.join(__dirname, "/static/Roboto-Regular.ttf"), {
+//     family: "Roboto",
+//   });
+//   registerFont(path.join(__dirname, "/static/Roboto-Bold.ttf"), {
+//     family: "Roboto",
+//     weight: "bold",
+//   });
+//   registerFont(path.join(__dirname, "/static/Roboto-Italic.ttf"), {
+//     family: "Roboto",
+//     style: "italic",
+//   });
 
-  const templatePath = path.join(__dirname, "certificate_template.png"); // Path to the certificate template
-  const outputDir = path.join(__dirname, "generated_certificates");
+//   const templatePath = path.join(__dirname, "certificate_template.png"); // Path to the certificate template
+//   const outputDir = path.join(__dirname, "generated_certificates");
 
-  // Ensure the output directory exists
-  if (!fs.existsSync(outputDir)) {
-    fs.mkdirSync(outputDir);
-  }
+//   // Ensure the output directory exists
+//   if (!fs.existsSync(outputDir)) {
+//     fs.mkdirSync(outputDir);
+//   }
+
+//   try {
+//     const templateImage = await loadImage(templatePath);
+
+//     for (let i = 0; i < users.length; i += batchSize) {
+//       const batch = users.slice(i, i + batchSize);
+
+//       // Process the batch in parallel
+//       await Promise.all(
+//         batch.map(async (user) => {
+//           const { name, role, email } = user;
+//           //  Check to to see if the user has gotten an email
+//           // Create a canvas with the same dimensions as the template
+//           const canvas = createCanvas(
+//             templateImage.width,
+//             templateImage.height
+//           );
+//           const context = canvas.getContext("2d");
+
+//           // Draw the template onto the canvas
+//           context.drawImage(templateImage, 0, 0);
+
+//           // Customize text styles
+//           context.font = 'normal 70px "Roboto"';
+//           context.fillStyle = "#8646E5";
+//           context.textAlign = "center";
+
+//           // Add user details to the certificate
+//           context.fillText(name, canvas.width / 2, 670); // Name
+
+//           // Handle role-specific placement
+//           const roleLowered = role.toLowerCase();
+//           const rolePositioning = {
+//             participant: { x: 953, y: 383 },
+//             volunteer: { x: 940, y: 383 },
+//             speaker: { x: 922, y: 383 },
+//           };
+
+//           if (rolePositioning[roleLowered]) {
+//             const { x, y } = rolePositioning[roleLowered];
+//             const padding = 50;
+//             context.font = 'bold 30px "Roboto"';
+//             context.fillStyle = "#8646E5";
+//             context.fillText(role.toUpperCase(), x + padding, y + padding);
+//           }
+
+//           // Save the generated certificate
+//           const outputPath = path.join(
+//             outputDir,
+//             `${name.replace(/ /g, "_")}_certificate.png`
+//           );
+//           const out = fs.createWriteStream(outputPath);
+//           const stream = canvas.createPNGStream();
+//           stream.pipe(out);
+
+//           await new Promise((resolve, reject) => {
+//             out.on("finish", resolve);
+//             out.on("error", reject);
+//           });
+
+//           console.log(`Certificate generated for ${name}: ${outputPath}`);
+//           const { url } = await uploadCertificateToCloudinary(outputPath);
+
+//           await sendCertificateEmail(user, outputPath, url);
+
+//           await insertUser({
+//             name,
+//             role: roleLowered,
+//             email,
+//             certificateUrl: url,
+//           });
+//           // Remove the file from the file system
+//           fs.unlink(outputPath, (err) => {
+//             if (err) {
+//               console.error(`Failed to delete file: ${outputPath}`, err);
+//             } else {
+//               console.log(`Deleted file: ${outputPath}`);
+//             }
+//           });
+//         })
+//       );
+
+//       console.log(`Batch ${Math.floor(i / batchSize) + 1} processed.`);
+//     }
+
+//     return {
+//       status: "success",
+//       message: "Certificates generated successfully in batches.",
+//     };
+//   } catch (error) {
+//     console.error("Error generating certificates: ", error.message);
+//     throw new Error("Failed to generate certificates " + error.message);
+//   }
+// };
+
+const generateCertificates = async (users, batchSize = 10, maxRetries = 3) => {
+  const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+  const processUser = async (user, retriesLeft = maxRetries) => {
+    const { name, role, email } = user;
+    try {
+      const templatePath = path.join(__dirname, "certificate_template.png");
+      const templateImage = await loadImage(templatePath);
+
+      const canvas = createCanvas(templateImage.width, templateImage.height);
+      const context = canvas.getContext("2d");
+
+      // Draw the template onto the canvas
+      context.drawImage(templateImage, 0, 0);
+
+      // Customize text styles
+      context.font = 'normal 70px "Roboto"';
+      context.fillStyle = "#8646E5";
+      context.textAlign = "center";
+
+      // Add user details to the certificate
+      context.fillText(name, canvas.width / 2, 670); // Name
+
+      const roleLowered = role.toLowerCase();
+      const rolePositioning = {
+        participant: { x: 953, y: 383 },
+        volunteer: { x: 940, y: 383 },
+        speaker: { x: 922, y: 383 },
+      };
+
+      if (rolePositioning[roleLowered]) {
+        const { x, y } = rolePositioning[roleLowered];
+        const padding = 50;
+        context.font = 'bold 30px "Roboto"';
+        context.fillStyle = "#8646E5";
+        context.fillText(role.toUpperCase(), x + padding, y + padding);
+      }
+
+      const outputDir = path.join(__dirname, "generated_certificates");
+      if (!fs.existsSync(outputDir)) {
+        fs.mkdirSync(outputDir);
+      }
+
+      const outputPath = path.join(
+        outputDir,
+        `${email.replace('@', "_")}_certificate.png`
+      );
+      const out = fs.createWriteStream(outputPath);
+      const stream = canvas.createPNGStream();
+      stream.pipe(out);
+
+      await new Promise((resolve, reject) => {
+        out.on("finish", resolve);
+        out.on("error", reject);
+      });
+
+      console.log(`Certificate generated for ${name}: ${outputPath}`);
+      const { url } = await uploadCertificateToCloudinary(outputPath);
+
+      await sendCertificateEmail(user, outputPath, url);
+      await insertUser({
+        name,
+        role: roleLowered,
+        email,
+        certificateUrl: url,
+      });
+
+      fs.unlink(outputPath, (err) => {
+        if (err) {
+          console.error(`Failed to delete file: ${outputPath}`, err);
+        } else {
+          console.log(`Deleted file: ${outputPath}`);
+        }
+      });
+    } catch (error) {
+      if (retriesLeft > 0) {
+        console.warn(
+          `Failed to process ${user.name}. Retrying... (${
+            maxRetries - retriesLeft + 1
+          }/${maxRetries})`
+        );
+        const retryDelay = 1000 * 2 ** (maxRetries - retriesLeft); // Exponential backoff
+        await delay(retryDelay);
+        return processUser(user, retriesLeft - 1);
+      } else {
+        console.error(
+          `Failed to process ${user.name} after ${maxRetries} attempts.`
+        );
+        throw error; // Log error but let the batch continue
+      }
+    }
+  };
+
+  const processBatch = async (batch) => {
+    await Promise.all(
+      batch.map((user) =>
+        processUser(user).catch((err) => {
+          console.error(`Error processing user ${user.name}:`, err);
+        })
+      )
+    );
+  };
 
   try {
-    const templateImage = await loadImage(templatePath);
-
     for (let i = 0; i < users.length; i += batchSize) {
       const batch = users.slice(i, i + batchSize);
-
-      // Process the batch in parallel
-      await Promise.all(
-        batch.map(async (user) => {
-          const { name, role, email } = user;
-          //  Check to to see if the user has gotten an email
-          // Create a canvas with the same dimensions as the template
-          const canvas = createCanvas(
-            templateImage.width,
-            templateImage.height
-          );
-          const context = canvas.getContext("2d");
-
-          // Draw the template onto the canvas
-          context.drawImage(templateImage, 0, 0);
-
-          // Customize text styles
-          context.font = 'normal 70px "Roboto"';
-          context.fillStyle = "#8646E5";
-          context.textAlign = "center";
-
-          // Add user details to the certificate
-          context.fillText(name, canvas.width / 2, 670); // Name
-
-          // Handle role-specific placement
-          const roleLowered = role.toLowerCase();
-          const rolePositioning = {
-            participant: { x: 953, y: 383 },
-            volunteer: { x: 940, y: 383 },
-            speaker: { x: 922, y: 383 },
-          };
-
-          if (rolePositioning[roleLowered]) {
-            const { x, y } = rolePositioning[roleLowered];
-            const padding = 50;
-            context.font = 'bold 30px "Roboto"';
-            context.fillStyle = "#8646E5";
-            context.fillText(role.toUpperCase(), x + padding, y + padding);
-          }
-
-          // Save the generated certificate
-          const outputPath = path.join(
-            outputDir,
-            `${name.replace(/ /g, "_")}_certificate.png`
-          );
-          const out = fs.createWriteStream(outputPath);
-          const stream = canvas.createPNGStream();
-          stream.pipe(out);
-
-          await new Promise((resolve, reject) => {
-            out.on("finish", resolve);
-            out.on("error", reject);
-          });
-
-          console.log(`Certificate generated for ${name}: ${outputPath}`);
-          const { url } = await uploadCertificateToCloudinary(outputPath);
-
-          await sendCertificateEmail(user, outputPath, url);
-
-          await insertUser({
-            name,
-            role: roleLowered,
-            email,
-            certificateUrl: url,
-          });
-          // Remove the file from the file system
-          fs.unlink(outputPath, (err) => {
-            if (err) {
-              console.error(`Failed to delete file: ${outputPath}`, err);
-            } else {
-              console.log(`Deleted file: ${outputPath}`);
-            }
-          });
-        })
-      );
-
-      console.log(`Batch ${Math.floor(i / batchSize) + 1} processed.`);
+      console.log(`Processing batch ${Math.floor(i / batchSize) + 1}`);
+      await processBatch(batch);
     }
 
     return {
       status: "success",
-      message: "Certificates generated successfully in batches.",
+      message: "Certificates generated successfully with retries.",
     };
   } catch (error) {
-    console.error("Error generating certificates: ", error.message);
-    throw new Error("Failed to generate certificates " + error.message);
+    console.error("Error generating certificates:", error);
+    throw new Error("Failed to generate certificates");
   }
 };
 

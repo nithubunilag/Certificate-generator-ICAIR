@@ -9,7 +9,7 @@ const sendCertificateEmail = async (user, filePath, certificateUrl) => {
   const mailOptions = {
     from: process.env.EMAIL_USER,
     to: email,
-    subject: "Thank You for Your Contribution to MIRG-ICAIR 2024",
+    subject: "Thank You and Certificate of Participation for MIRG-ICAIR 2024",
     template: "certificate",
     context: {
       name,
