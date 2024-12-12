@@ -49,10 +49,15 @@ const convertExcelToBase64 = async () => {
   return base64String;
 };
 
+// Function to upload the certificate file to Filestack
 
-// const generateCertificatesInBatches = async (users, batchSize = 10) => {
+// const generateCertificates = async (users) => {
 //   registerFont(path.join(__dirname, "/AlexBrush-Regular.ttf"), {
 //     family: "Alex Brush",
+//   });
+
+//   registerFont(path.join(__dirname, "/static/PlaywriteGBSGuides-Italic.ttf"), {
+//     family: "Playwrite GB S Guides",
 //   });
 
 //   registerFont("./static/Montserrat-VariableFont_wght.ttf", {
@@ -63,6 +68,7 @@ const convertExcelToBase64 = async () => {
 //     family: "MontserratAlternatesRegular",
 //   });
 
+//   // Register Roboto font files
 //   registerFont(path.join(__dirname, "/static/Roboto-Regular.ttf"), {
 //     family: "Roboto",
 //   });
@@ -75,9 +81,10 @@ const convertExcelToBase64 = async () => {
 //     style: "italic",
 //   });
 
-//   const templatePath = path.join(__dirname, "certificate_template.png");
+//   const templatePath = path.join(__dirname, "certificate_template.png"); // Path to the certificate template
 //   const outputDir = path.join(__dirname, "generated_certificates");
 
+//   // Ensure the output directory exists
 //   if (!fs.existsSync(outputDir)) {
 //     fs.mkdirSync(outputDir);
 //   }
@@ -85,109 +92,130 @@ const convertExcelToBase64 = async () => {
 //   try {
 //     const templateImage = await loadImage(templatePath);
 
-//     const totalUsers = users.length;
-//     let currentBatchStart = 0;
+//     for (const user of users) {
+//       const { name, role, email } = user;
 
-//     while (currentBatchStart < totalUsers) {
-//       const batch = users.slice(
-//         currentBatchStart,
-//         currentBatchStart + batchSize
+//       // Create a canvas with the same dimensions as the template
+//       const canvas = createCanvas(templateImage.width, templateImage.height);
+//       const context = canvas.getContext("2d");
+
+//       // Draw the template onto the canvas
+//       context.drawImage(templateImage, 0, 0);
+
+//       // Customize text styles
+//       context.font = 'normal 70px "Roboto"';
+//       context.fillStyle = "#8646E5";
+//       context.textAlign = "center";
+
+//       // Add user details to the certificate
+//       context.fillText(name, canvas.width / 2, 670); // Name (adjust Y position as needed)
+
+//       if (role.toLowerCase() == "participant") {
+//         const padding = 50; // Padding around text
+//         const boxX = 949;
+//         const boxY = 308;
+//         const boxWidth = context.measureText(role).width + padding * 2; // Include padding width
+//         const boxHeight = 150 + padding * 2; // Height of the box including padding
+//         context.font = 'bold 30px "Roboto"';
+//         context.fillStyle = "#8646E5";
+//         // context.textAlign = "";
+//         // context.fillText(role.toUpperCase(), 1237, 538); // Role
+
+//         context.fillText(
+//           role.toUpperCase(),
+//           boxX + padding,
+//           boxY + boxHeight / 2
+//         ); // Role
+//       } else if (role.toLowerCase() == "volunteer") {
+//         const padding = 50; // Padding around text
+//         const boxX = 940;
+//         const boxY = 308;
+//         const boxWidth = context.measureText(role).width + padding * 2; // Include padding width
+//         const boxHeight = 150 + padding * 2; // Height of the box including padding
+//         context.font = 'bold 30px "Roboto"';
+//         context.fillStyle = "#8646E5";
+//         // context.textAlign = "";
+//         // context.fillText(role.toUpperCase(), 1237, 538); // Role
+
+//         context.fillText(
+//           role.toUpperCase(),
+//           boxX + padding,
+//           boxY + boxHeight / 2
+//         ); // Role
+//       } else if (role.toLowerCase() == "speaker") {
+//         const padding = 50; // Padding around text
+//         const boxX = 923.5;
+//         const boxY = 308;
+//         const boxWidth = context.measureText(role).width + padding * 2; // Include padding width
+//         const boxHeight = 150 + padding * 2; // Height of the box including padding
+//         context.font = 'bold 30px "Roboto"';
+//         context.fillStyle = "#8646E5";
+//         // context.textAlign = "";
+//         // context.fillText(role.toUpperCase(), 1237, 538); // Role
+
+//         context.fillText(
+//           role.toUpperCase(),
+//           boxX + padding,
+//           boxY + boxHeight / 2
+//         ); // Role
+//       }
+
+//       // Save the generated certificate
+//       const outputPath = path.join(
+//         outputDir,
+//         `${name.replace(/ /g, "_")}_certificate.png`
 //       );
+//       const out = fs.createWriteStream(outputPath);
+//       const stream = canvas.createPNGStream();
+//       stream.pipe(out);
 
-//       // Process the current batch
-//       await Promise.all(
-//         batch.map(async (user) => {
-//           const { name, role, email } = user;
+//       // Wait for the stream to finish
+//       await new Promise((resolve, reject) => {
+//         out.on("finish", resolve);
+//         out.on("error", reject);
+//       });
 
-//           // Create a canvas and context
-//           const canvas = createCanvas(
-//             templateImage.width,
-//             templateImage.height
-//           );
-//           const context = canvas.getContext("2d");
-
-//           // Draw the certificate template
-//           context.drawImage(templateImage, 0, 0);
-//           context.font = 'bold 150px "Alex Brush"';
-//           context.fillStyle = "#8646E5";
-//           context.textAlign = "center";
-//           context.fillText(name, canvas.width / 2, 800);
-
-//           // Customize role display
-//           context.font = 'bold 30px "Roboto"';
-//           const roleY = 415;
-//           if (role.toLowerCase() === "participant") {
-//             context.fillText(role.toUpperCase(), 1237, roleY);
-//           } else if (role.toLowerCase() === "volunteer") {
-//             context.fillText(role.toUpperCase(), 1215, roleY);
-//           } else if (role.toLowerCase() === "speaker") {
-//             context.fillText(role.toUpperCase(), 1200, roleY);
-//           }
-
-//           // Save the certificate
-//           const outputPath = path.join(
-//             outputDir,
-//             `${name.replace(/ /g, "_")}_certificate.png`
-//           );
-//           const out = fs.createWriteStream(outputPath);
-//           const stream = canvas.createPNGStream();
-//           stream.pipe(out);
-
-//           await new Promise((resolve, reject) => {
-//             out.on("finish", resolve);
-//             out.on("error", reject);
-//           });
-
-//           const { url } = await uploadCertificateToCloudinary(outputPath);
-
-//           await insertUser({
-//             name,
-//             role: role.toLowerCase(),
-//             email,
-//             certificateUrl: url,
-//           });
-
-//           await sendCertificateEmail(user, outputPath, url);
-
-//           fs.unlink(outputPath, (err) => {
-//             if (err) console.error(`Failed to delete file: ${outputPath}`, err);
-//           });
-//         })
+//       console.log(`Certificate generated for ${name}: ${outputPath}`);
+//       const { url, public_id } = await uploadCertificateToCloudinary(
+//         outputPath
 //       );
+//       const certificateUrl = url;
+//       console.log(`Uploaded to Cloudinary: ${certificateUrl}`);
 
-//       // Move to the next batch
-//       currentBatchStart += batchSize;
+//       await insertUser({
+//         name,
+//         role: role.toLowerCase(),
+//         email,
+//         certificateUrl,
+//       });
 
-//       console.log(
-//         `Processed batch: ${currentBatchStart} of ${totalUsers} users.`
-//       );
+//       await sendCertificateEmail(user, outputPath, certificateUrl);
+
+//       // Remove the file from the file system
+
+//       fs.unlink(outputPath, (err) => {
+//         if (err) {
+//           console.error(`Failed to delete file: ${outputPath}`, err);
+//         } else {
+//           console.log(`Deleted file: ${outputPath}`);
+//         }
+//       });
 //     }
 
 //     return {
 //       status: "success",
-//       message: "All certificates processed in batches.",
+//       message: "Certificates generated successfully.",
 //     };
 //   } catch (error) {
-//     console.error("Error processing certificates in batches:", error);
-//     throw new Error("Failed to process certificates in batches");
+//     console.error("Error generating certificates:", error);
+//     throw new Error("Failed to generate certificates");
 //   }
 // };
 
-
-
-
-
-
-
-
-// Function to upload the certificate file to Filestack
-
-
-const generateCertificates = async (users) => {
+const generateCertificates = async (users, batchSize = 10) => {
   registerFont(path.join(__dirname, "/AlexBrush-Regular.ttf"), {
     family: "Alex Brush",
   });
-
 
   registerFont(path.join(__dirname, "/static/PlaywriteGBSGuides-Italic.ttf"), {
     family: "Playwrite GB S Guides",
@@ -225,127 +253,96 @@ const generateCertificates = async (users) => {
   try {
     const templateImage = await loadImage(templatePath);
 
-    for (const user of users) {
-      const { name, role, email } = user;
+    for (let i = 0; i < users.length; i += batchSize) {
+      const batch = users.slice(i, i + batchSize);
 
-      // Create a canvas with the same dimensions as the template
-      const canvas = createCanvas(templateImage.width, templateImage.height);
-      const context = canvas.getContext("2d");
+      // Process the batch in parallel
+      await Promise.all(
+        batch.map(async (user) => {
+          const { name, role, email } = user;
+          //  Check to to see if the user has gotten an email
+          // Create a canvas with the same dimensions as the template
+          const canvas = createCanvas(
+            templateImage.width,
+            templateImage.height
+          );
+          const context = canvas.getContext("2d");
 
-      // Draw the template onto the canvas
-      context.drawImage(templateImage, 0, 0);
+          // Draw the template onto the canvas
+          context.drawImage(templateImage, 0, 0);
 
-      // Customize text styles
-      context.font = 'normal 70px "Roboto"';
-      context.fillStyle = "#8646E5";
-      context.textAlign = "center";
+          // Customize text styles
+          context.font = 'normal 70px "Roboto"';
+          context.fillStyle = "#8646E5";
+          context.textAlign = "center";
 
-      // Add user details to the certificate
-      context.fillText(name, canvas.width / 2, 670); // Name (adjust Y position as needed)
+          // Add user details to the certificate
+          context.fillText(name, canvas.width / 2, 670); // Name
 
-      if (role.toLowerCase() == "participant") {
-        const padding = 50; // Padding around text
-        const boxX = 949;
-        const boxY = 308;
-        const boxWidth = context.measureText(role).width + padding * 2; // Include padding width
-        const boxHeight = 150 + padding * 2; // Height of the box including padding
-        context.font = 'bold 30px "Roboto"';
-        context.fillStyle = "#8646E5";
-        // context.textAlign = "";
-        // context.fillText(role.toUpperCase(), 1237, 538); // Role
+          // Handle role-specific placement
+          const roleLowered = role.toLowerCase();
+          const rolePositioning = {
+            participant: { x: 953, y: 383 },
+            volunteer: { x: 940, y: 383 },
+            speaker: { x: 922, y: 383 },
+          };
 
-        context.fillText(
-          role.toUpperCase(),
-          boxX + padding,
-          boxY + boxHeight / 2
-        ); // Role
-      } else if (role.toLowerCase() == "volunteer") {
-        const padding = 50; // Padding around text
-        const boxX = 937;
-        const boxY = 308;
-        const boxWidth = context.measureText(role).width + padding * 2; // Include padding width
-        const boxHeight = 150 + padding * 2; // Height of the box including padding
-        context.font = 'bold 30px "Roboto"';
-        context.fillStyle = "#8646E5";
-        // context.textAlign = "";
-        // context.fillText(role.toUpperCase(), 1237, 538); // Role
+          if (rolePositioning[roleLowered]) {
+            const { x, y } = rolePositioning[roleLowered];
+            const padding = 50;
+            context.font = 'bold 30px "Roboto"';
+            context.fillStyle = "#8646E5";
+            context.fillText(role.toUpperCase(), x + padding, y + padding);
+          }
 
-        context.fillText(
-          role.toUpperCase(),
-          boxX + padding,
-          boxY + boxHeight / 2
-        ); // Role
-      } else if (role.toLowerCase() == "speaker") {
-        const padding = 50; // Padding around text
-        const boxX = 923.5;
-        const boxY = 308;
-        const boxWidth = context.measureText(role).width + padding * 2; // Include padding width
-        const boxHeight = 150 + padding * 2; // Height of the box including padding
-        context.font = 'bold 30px "Roboto"';
-        context.fillStyle = "#8646E5";
-        // context.textAlign = "";
-        // context.fillText(role.toUpperCase(), 1237, 538); // Role
+          // Save the generated certificate
+          const outputPath = path.join(
+            outputDir,
+            `${name.replace(/ /g, "_")}_certificate.png`
+          );
+          const out = fs.createWriteStream(outputPath);
+          const stream = canvas.createPNGStream();
+          stream.pipe(out);
 
-        context.fillText(
-          role.toUpperCase(),
-          boxX + padding,
-          boxY + boxHeight / 2
-        ); // Role
-      }
+          await new Promise((resolve, reject) => {
+            out.on("finish", resolve);
+            out.on("error", reject);
+          });
 
-      // Save the generated certificate
-      const outputPath = path.join(
-        outputDir,
-        `${name.replace(/ /g, "_")}_certificate.png`
+          console.log(`Certificate generated for ${name}: ${outputPath}`);
+          const { url } = await uploadCertificateToCloudinary(outputPath);
+
+          await sendCertificateEmail(user, outputPath, url);
+
+          await insertUser({
+            name,
+            role: roleLowered,
+            email,
+            certificateUrl: url,
+          });
+          // Remove the file from the file system
+          fs.unlink(outputPath, (err) => {
+            if (err) {
+              console.error(`Failed to delete file: ${outputPath}`, err);
+            } else {
+              console.log(`Deleted file: ${outputPath}`);
+            }
+          });
+        })
       );
-      const out = fs.createWriteStream(outputPath);
-      const stream = canvas.createPNGStream();
-      stream.pipe(out);
 
-      // Wait for the stream to finish
-      await new Promise((resolve, reject) => {
-        out.on("finish", resolve);
-        out.on("error", reject);
-      });
-
-      console.log(`Certificate generated for ${name}: ${outputPath}`);
-      const { url, public_id } = await uploadCertificateToCloudinary(
-        outputPath
-      );
-      const certificateUrl = url;
-      console.log(`Uploaded to Cloudinary: ${certificateUrl}`);
-
-      await insertUser({
-        name,
-        role: role.toLowerCase(),
-        email,
-        certificateUrl,
-      });
-
-      await sendCertificateEmail(user, outputPath, certificateUrl);
-
-      // Remove the file from the file system
-
-      fs.unlink(outputPath, (err) => {
-        if (err) {
-          console.error(`Failed to delete file: ${outputPath}`, err);
-        } else {
-          console.log(`Deleted file: ${outputPath}`);
-        }
-      });
+      console.log(`Batch ${Math.floor(i / batchSize) + 1} processed.`);
     }
 
     return {
       status: "success",
-      message: "Certificates generated successfully.",
+      message: "Certificates generated successfully in batches.",
     };
   } catch (error) {
-    console.error("Error generating certificates:", error);
-    throw new Error("Failed to generate certificates");
+    console.error("Error generating certificates: ", error.message);
+    throw new Error("Failed to generate certificates " + error.message);
   }
 };
-
-
 
 const uploadCertificateToFilestack = (filePath) => {
   return new Promise((resolve, reject) => {
@@ -363,6 +360,14 @@ const uploadCertificateToFilestack = (filePath) => {
 };
 
 const uploadCertificateToCloudinary = async (imagePath) => {
+  if (!imagePath) {
+    console.error("Invalid image path provided for upload.");
+    return {
+      success: false,
+      message: "Image path is required and must be valid.",
+    };
+  }
+
   try {
     const certificateImage = await cloudinary.uploader.upload(imagePath, {
       folder: "certificates", // Specify the folder in Cloudinary
@@ -370,35 +375,85 @@ const uploadCertificateToCloudinary = async (imagePath) => {
       crop: "scale", // Apply scaling crop
     });
 
-    // Return the Cloudinary response
     const response = {
       public_id: certificateImage.public_id,
       url: certificateImage.secure_url,
     };
 
-    return response;
+    console.log("Image uploaded successfully:", response);
+    return {
+      success: true,
+      message: "Image uploaded successfully.",
+      data: response,
+    };
   } catch (error) {
-    console.error("Error uploading image:", error);
-    throw error;
+    console.error("Error uploading image to Cloudinary:", error);
+
+    // Differentiating errors
+    if (error.http_code === 400) {
+      console.error("Bad request error. Check the provided parameters.");
+    } else if (error.http_code === 401) {
+      console.error("Authentication error. Verify Cloudinary credentials.");
+    } else if (error.name === "TypeError") {
+      console.error("Type error. Ensure imagePath is valid.");
+    } else {
+      console.error("Unexpected error during image upload.");
+    }
+
+    return {
+      success: false,
+      message: "Failed to upload image.",
+      error,
+    };
   }
 };
 
-// const bulkInsertUsers = async (users) => {
-
-//   try {
-//     const result = await User.insertMany(users, { ordered: true });
-//     console.log("Bulk insert successful:", result);
-//   } catch (error) {
-//     console.error("Error during bulk insert:", error);
-//   }
-// };
-
 const insertUser = async (user) => {
+  // Input validation
+  if (!user || !user.name || !user.email || !user.role) {
+    console.error("Invalid user data. Required fields are missing.");
+    return {
+      success: false,
+      message:
+        "Invalid user data. Ensure 'name', 'email', and 'role' are provided.",
+    };
+  }
+
   try {
     const result = await User.create(user);
-    console.log("insert successful:", result);
+    console.log("User inserted successfully:", result);
+    return {
+      success: true,
+      message: "User inserted successfully.",
+      result,
+    };
   } catch (error) {
-    console.error("Error during bulk insert:", error);
+    console.error("Error during user insert operation:", error);
+
+    // Differentiating error types
+    if (error.name === "ValidationError") {
+      console.error("Validation Error:", error.message);
+    } else if (error.name === "MongoNetworkError") {
+      console.error("Database connection issue:", error.message);
+    } else {
+      console.error("Unexpected error during user insertion.");
+    }
+
+    // Return error details for further handling
+    return {
+      success: false,
+      message: "Failed to insert user.",
+      error,
+    };
+  }
+};
+
+const findUser = async (user) => {
+  try {
+    const userInfo = await User.findOne(user);
+    return userInfo;
+  } catch (error) {
+    throw Error("There was an error ", error.message);
   }
 };
 
@@ -408,4 +463,5 @@ module.exports = {
   generateCertificates,
   uploadCertificateToCloudinary,
   insertUser,
+  findUser,
 };
