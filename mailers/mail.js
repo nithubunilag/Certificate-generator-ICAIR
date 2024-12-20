@@ -36,6 +36,39 @@ const sendCertificateEmail = async (user, filePath, certificateUrl) => {
   }
 };
 
+
+const sendTrainingCertificateEmail = async (user, filePath, certificateUrl) => {
+  const { name, email, course, program } = user;
+
+  const mailOptions = {
+    from: process.env.EMAIL_USER,
+    to: email,
+    subject: "Congratulations on Completing Your Training Program!",
+    template: "trainingCertificate",
+    context: {
+      name,
+      programName: course == 'frontend' || course == 'backend' || course == 'mobile' || course == 'fullstack'? course.toUpperCase() + ' ' +"DEVELOPMENT" : course.toUpperCase(),
+      program,
+      certificateUrl,
+      senderName: "Kingsley Ogbonna Victor",
+      senderPosition: "Training Manager"
+    },
+    attachments: [
+      {
+        filename: `${name}_certificate.png`,
+        path: filePath, // Local file path of the certificate
+      },
+    ],
+  };
+
+  try {
+    const info = await transporter.sendMail(mailOptions);
+    console.log("Email sent: " + info.response);
+  } catch (error) {
+    console.error("Error sending email:", error);
+  }
+};
+
 const sendCertificateEmailBySendGrid = async (user, certificateUrl) => {
   const { name, email, role } = user;
 
@@ -66,4 +99,4 @@ const sendCertificateEmailBySendGrid = async (user, certificateUrl) => {
   }
 };
 
-module.exports = { sendCertificateEmail, sendCertificateEmailBySendGrid };
+module.exports = { sendCertificateEmail, sendCertificateEmailBySendGrid , sendTrainingCertificateEmail};

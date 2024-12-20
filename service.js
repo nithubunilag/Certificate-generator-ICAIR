@@ -8,6 +8,7 @@ const {
   uploadCertificateToCloudinary,
   generateCertificates,
   generateCertificatesInBatches,
+  generateTraningCertificates
 } = require("./utils");
 const fs = require("fs");
 const { readFile } = require("fs/promises");
@@ -21,6 +22,18 @@ const uploadCertificate = async (req) => {
   return response;
 };
 
+
+
+const  generateTrainingCertificates = async (req) => {
+  const data = req.body;
+  const response = await generateTraningCertificates(data);
+
+  return response;
+};
+
+
+
 module.exports = {
   uploadCertificate,
+  generateTrainingCertificates
 };

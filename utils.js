@@ -2,13 +2,53 @@ const { createCanvas, loadImage, registerFont } = require("canvas");
 const cloudinary = require("./config/cloudinary");
 const fs = require("fs");
 const path = require("path");
-const { sendCertificateEmail } = require("./mailers/mail");
-const User = require("./model");
+const {
+  sendCertificateEmail,
+  sendTrainingCertificateEmail,
+} = require("./mailers/mail");
+const User = require("./model/user");
+const Training = require("./model/training");
 const { certificateQueue } = require("./queue");
 const { newError } = require("./response");
 
-// const filestack = require("filestack-node");
-// const client = filestack.init("your-api-key"); // Replace with your Filestack API key
+registerFont(path.join(__dirname, "/AlexBrush-Regular.ttf"), {
+  family: "Alex Brush",
+});
+
+registerFont(path.join(__dirname, "/static/PlaywriteGBSGuides-Italic.ttf"), {
+  family: "Playwrite GB S Guides",
+});
+
+registerFont("./static/Montserrat-VariableFont_wght.ttf", {
+  family: "Montserrat",
+});
+
+registerFont("./static/MontserratAlternates-Regular.otf", {
+  family: "MontserratAlternatesRegular",
+});
+
+// Register Roboto font files
+registerFont(path.join(__dirname, "/static/Roboto-Regular.ttf"), {
+  family: "Roboto",
+});
+registerFont(path.join(__dirname, "/static/Roboto-Bold.ttf"), {
+  family: "Roboto",
+  weight: "bold",
+});
+registerFont(path.join(__dirname, "/static/Roboto-Italic.ttf"), {
+  family: "Roboto",
+  style: "italic",
+});
+
+registerFont(path.join(__dirname, "/static/Alegreya-Bold.ttf"), {
+  family: "Alegreya",
+  style: "normal",
+});
+
+// registerFont(path.join(__dirname, "/static/Alegreya-BoldItalic.ttf"), {
+//   family: "Alegreya",
+//   style: "normal",
+// });
 
 async function generateAndUploadCertificate(name, course) {
   const canvas = createCanvas(1200, 800);
@@ -344,7 +384,7 @@ const convertExcelToBase64 = async () => {
 //   }
 // };
 
-const generateCertificates = async (users, batchSize = 10, maxRetries = 3) => {
+const generateCertificates = async (users, batchSize = 25, maxRetries = 3) => {
   const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
   const processUser = async (user, retriesLeft = maxRetries) => {
@@ -369,9 +409,9 @@ const generateCertificates = async (users, batchSize = 10, maxRetries = 3) => {
 
       const roleLowered = role.toLowerCase();
       const rolePositioning = {
-        participant: { x: 967, y: 383 },
-        volunteer: { x: 963, y: 383 },
-        speaker: { x: 945, y: 383 },
+        participant: { x: 953, y: 383 },
+        volunteer: { x: 940, y: 383 },
+        speaker: { x: 922, y: 383 },
       };
 
       if (rolePositioning[roleLowered]) {
@@ -389,7 +429,7 @@ const generateCertificates = async (users, batchSize = 10, maxRetries = 3) => {
 
       const outputPath = path.join(
         outputDir,
-        `${email.replace('@', "_")}_certificate.png`
+        `${email.replace("@", "_")}_certificate.png`
       );
       const out = fs.createWriteStream(outputPath);
       const stream = canvas.createPNGStream();
@@ -418,6 +458,134 @@ const generateCertificates = async (users, batchSize = 10, maxRetries = 3) => {
           console.log(`Deleted file: ${outputPath}`);
         }
       });
+    } catch (error) {
+      if (retriesLeft > 0) {
+        console.warn(
+          `Failed to process ${user.name}. Retrying... (${
+            maxRetries - retriesLeft + 1
+          }/${maxRetries})`
+        );
+        const retryDelay = 1000 * 2 ** (maxRetries - retriesLeft); // Exponential backoff
+        await delay(retryDelay);
+        return processUser(user, retriesLeft - 1);
+      } else {
+        console.error(
+          `Failed to process ${user.name} after ${maxRetries} attempts.`
+        );
+        throw error; // Log error but let the batch continue
+      }
+    }
+  };
+
+  const processBatch = async (batch) => {
+    await Promise.all(
+      batch.map((user) =>
+        processUser(user).catch((err) => {
+          console.error(`Error processing user ${user.name}:`, err);
+        })
+      )
+    );
+  };
+
+  try {
+    for (let i = 0; i < users.length; i += batchSize) {
+      const batch = users.slice(i, i + batchSize);
+      console.log(`Processing batch ${Math.floor(i / batchSize) + 1}`);
+      await processBatch(batch);
+    }
+
+    return {
+      status: "success",
+      message: "Certificates generated successfully with retries.",
+    };
+  } catch (error) {
+    console.error("Error generating certificates:", error);
+    throw new Error("Failed to generate certificates");
+  }
+};
+
+const generateTraningCertificates = async (
+  users,
+  batchSize = 5,
+  maxRetries = 3
+) => {
+  const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+  const processUser = async (user, retriesLeft = maxRetries) => {
+    const { name, course, email, program } = user;
+
+    try {
+      const courseLowered = course.toLowerCase();
+
+      const coursePositioning = {
+        frontend: `training/frontend_training_certificate_template_NITDEV.png`,
+        backend: `training/backend_training_certificate_template_NITDEV.png`,
+        mobile: `training/mobile_training_certificate_template_NITDEV.png`,
+        "product design": `training/product_design_training_certificate_template_NITDEV.png`,
+        "data analytics": `training/data_analytics_training_certificate_template_NITDATA.png`,
+      };
+
+      if (coursePositioning[courseLowered]) {
+        const templatePath = path.join(
+          __dirname,
+          coursePositioning[courseLowered]
+        );
+        const templateImage = await loadImage(templatePath);
+
+        const canvas = createCanvas(templateImage.width, templateImage.height);
+        const context = canvas.getContext("2d");
+
+        // Draw the template onto the canvas
+        context.drawImage(templateImage, 0, 0);
+
+        // Customize text styles
+        context.font = 'normal 80px "Alegreya"';
+        context.fillStyle = "#000";
+        context.textAlign = "left";
+
+        // Add user details to the certificate
+        context.fillText(name, 130, 700); // Name
+
+        const outputDir = path.join(__dirname, "generated_certificates");
+        if (!fs.existsSync(outputDir)) {
+          fs.mkdirSync(outputDir);
+        }
+
+        const outputPath = path.join(
+          outputDir,
+          `${email.replace("@", "_")}_certificate.png`
+        );
+
+        const out = fs.createWriteStream(outputPath);
+        const stream = canvas.createPNGStream();
+        stream.pipe(out);
+
+        await new Promise((resolve, reject) => {
+          out.on("finish", resolve);
+          out.on("error", reject);
+        });
+
+        console.log(`Certificate generated for ${name}: ${outputPath}`);
+
+        const { data } = await uploadCertificateToCloudinary(outputPath);
+        console.log(data.url);
+        await sendTrainingCertificateEmail(user, outputPath, data.url);
+        await insertTrainee({
+          name,
+          course: courseLowered,
+          email,
+          program,
+          certificateUrl: data.url,
+        });
+
+        // fs.unlink(outputPath, (err) => {
+        //   if (err) {
+        //     console.error(`Failed to delete file: ${outputPath}`, err);
+        //   } else {
+        //     console.log(`Deleted file: ${outputPath}`);
+        //   }
+        // });
+      }
     } catch (error) {
       if (retriesLeft > 0) {
         console.warn(
@@ -568,6 +736,46 @@ const insertUser = async (user) => {
   }
 };
 
+const insertTrainee = async (user) => {
+  // Input validation
+  if (!user || !user.name || !user.email || !user.course || !user.cohort) {
+    console.error("Invalid user data. Required fields are missing.");
+    return {
+      success: false,
+      message:
+        "Invalid user data. Ensure 'name', 'email', and 'role' are provided.",
+    };
+  }
+
+  try {
+    const result = await Training.create(user);
+    console.log("User inserted successfully:", result);
+    return {
+      success: true,
+      message: "User inserted successfully.",
+      result,
+    };
+  } catch (error) {
+    console.error("Error during user insert operation:", error);
+
+    // Differentiating error types
+    if (error.name === "ValidationError") {
+      console.error("Validation Error:", error.message);
+    } else if (error.name === "MongoNetworkError") {
+      console.error("Database connection issue:", error.message);
+    } else {
+      console.error("Unexpected error during user insertion.");
+    }
+
+    // Return error details for further handling
+    return {
+      success: false,
+      message: "Failed to insert trainee.",
+      error,
+    };
+  }
+};
+
 const findUser = async (user) => {
   try {
     const userInfo = await User.findOne(user);
@@ -581,7 +789,9 @@ module.exports = {
   generateAndUploadCertificate,
   convertExcelToBase64,
   generateCertificates,
+  generateTraningCertificates,
   uploadCertificateToCloudinary,
   insertUser,
   findUser,
+  insertTrainee,
 };

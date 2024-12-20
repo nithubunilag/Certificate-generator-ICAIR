@@ -3,7 +3,7 @@ const mongoose = require("mongoose");
 const connectToDB = async () => {
   try {
     mongoose.set("strictQuery", true);
-    await mongoose.connect(process.env.MONGODB_URI_PRODUCTION, {
+    await mongoose.connect(process.env.MONGODB_URI_DEVELOPMENT, {
       dbName: "certificate-generator",
     });
     console.log("Database connection established successfully!!!");

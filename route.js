@@ -8,4 +8,7 @@ router.post(
   certificateController.uploadCertificate
 );
 
+
+router.post("/generate/training", certificateController.generateTrainingCertificates);
+
 module.exports = router;

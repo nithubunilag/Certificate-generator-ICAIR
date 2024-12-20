@@ -1,0 +1,49 @@
+<html>
+  <head>
+    <style>
+      body { font-family: Arial, sans-serif; background-color: #f9f9f9; margin:
+      0; padding: 0; } .email-container { background-color: #ffffff; max-width:
+      600px; margin: 20px auto; border-radius: 10px; box-shadow: 0 4px 8px
+      rgba(0, 0, 0, 0.1); overflow: hidden; } .header { background-color:
+      #4CAF50; color: #ffffff; text-align: center; padding: 20px; } .header h1 {
+      margin: 0; font-size: 24px; } .content { padding: 20px; line-height: 1.6;
+      color: #333333; } .content p { margin: 10px 0; } .footer {
+      background-color: #f1f1f1; text-align: center; padding: 10px; font-size:
+      14px; color: #888888; }
+    </style>
+  </head>
+  <body>
+    <div class="email-container">
+      <div class="header">
+        <h1>Congratulations on Completing Your Training Program!</h1>
+      </div>
+      <div class="content">
+        <p>Dear {{name}},</p>
+        <p>Congratulations on successfully completing the
+          {{program}}
+          <strong>{{programName}}</strong>! Training. Your dedication, hard
+          work, and enthusiasm throughout this training have been truly
+          commendable.</p>
+        <p>We are proud to recognize your achievement and are excited to see how
+          you will apply the skills and knowledge you've gained in your future
+          endeavors. Attached to this email, you will find your
+          <strong>Certificate of Completion</strong>, which serves as a
+          testament to your commitment and accomplishment.</p>
+        <p>Please don’t hesitate to reach out if you have any questions or need
+          further assistance as you continue to grow and succeed.</p>
+        <p>We also encourage you to celebrate this achievement by sharing your
+          certificate on your social media platforms like
+          <strong>LinkedIn, X (formerly Twitter), and Instagram</strong>.
+          Inspire your network by letting them know about your accomplishment!</p>
+        <p>Once again, congratulations on this milestone! We look forward to
+          seeing the great things you will achieve.</p>
+        <p>Best regards,</p>
+        <p><strong>{{senderName}}</strong><br />{{senderPosition}}<br
+          />{{organizationName}}<br />{{contactInfo}}</p>
+      </div>
+      {{! <div class="footer">
+      <p>Attachment: Certificate of Completion</p>
+    </div> }}
+    </div>
+  </body>
+</html>
